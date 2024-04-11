@@ -26,6 +26,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.post("/login", async (req, res) => {
+  console.log(req.body);
   try {
     const { email } = req.body; // Destructure email from req.body
     if (!email) {
@@ -34,7 +35,7 @@ app.post("/login", async (req, res) => {
     }
 
     const response = await axios.get(
-      `${process.env.EMPLOYEE}${process.env.TOKENNEW}`
+      `${process.env.EMPLOYEE}${process.env.TOKENPOSSIBLE}`
     );
 
     const externalData = response.data.response.filter(
@@ -50,7 +51,8 @@ app.post("/login", async (req, res) => {
 
     if (userOnPoster && !userOnMongo.length) {
       await User.create(userOnPoster);
-      return res.status(200).send(userOnPoster[0]);
+      const createUser = await User.find({ login: email })
+      return res.status(200).send(createUser[0]);
     } else if (userOnPoster && userOnMongo) {
       return res.status(200).send(userOnMongo[0]);
     } else {
