@@ -22,13 +22,14 @@ app.use(express.urlencoded({ extended: true }));
 
 app.post("/login", async (req, res) => {
   try {
+    console.log(req.body);
     const { email } = req.body; // Destructure email from req.body
     if (!email) {
       // Check if email is not provided
       return res.status(400).send({ message: "Email is required" });
     }
 
-    const response = await axios.get(`${process.env.employee}${process.env.tokenNew}`);
+    const response = await axios.get(`${process.env.EMPLOYEE}${process.env.TOKENNEW}`);
 
     const externalData = response.data.response.filter(
       (item) => item.role_name === "курьер" || item.role_name === "Кур’єр"
