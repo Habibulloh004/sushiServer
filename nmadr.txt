@@ -1,0 +1,37 @@
+admin.initializeApp({
+  credential: admin.credential.cert(credentials),
+});
+const db = admin.firestore();
+
+app.post("/login", async (req, res) => {
+  try {
+    const snapshot = await db.collection("users").get();
+    // Populate the couriers array with user data
+    const couriers = [];
+    snapshot.forEach((doc) => {
+      couriers.push(doc.data());
+    });
+
+    const response = await axios.get(`${employee}${tokenPossible}`);
+    const externalData = response.data.response.filter(
+      (item) => item.role_name === "курьер"
+    );
+
+    const { email } = req.body;
+
+    const userOnFireBase = couriers.find((courier) => courier.login === email);
+    const userOnPoster = externalData.find(
+      (courier) => courier.login === email
+    );
+    if (userOnPoster && !userOnFireBase) {
+      await db.collection("users").doc().set(userOnPoster);
+      res.status(200).send(JSON.stringify(userOnPoster));
+    } else if (userOnPoster && userOnFireBase) {
+      res.status(200).send(userOnFireBase);
+    } else {
+      res.status(404).send("User not found");
+    }
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
