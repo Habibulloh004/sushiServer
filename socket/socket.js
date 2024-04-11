@@ -7,11 +7,17 @@ const app = express();
 const server = http.createServer(app);
 
 const userSocketMap = {};
-const users = {}; 
+const users = {};
 
 const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: [
+      "*",
+      "https://kuryer-sushi.vercel.app",
+      "http://localhost:5173",
+      "https://joinposter.com",
+      "https://platform.joinposter.com",
+    ],
     methods: ["GET", "POST"],
   },
 });
@@ -25,12 +31,11 @@ io.on("connection", (socket) => {
   io.emit("onlineUsers", Object.keys(userSocketMap));
   users[socket.id] = true;
 
-
   socket.on("disconnect", () => {
     console.log("user disconnected", socket.id);
     delete userSocketMap[userId];
     io.emit("onlineUsers", Object.keys(userSocketMap));
-    io.emit('userStatusUpdate', { userId: socket.id, online: false });
+    io.emit("userStatusUpdate", { userId: socket.id, online: false });
   });
 });
 

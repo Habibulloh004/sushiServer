@@ -10,7 +10,13 @@ dotenv.config();
 const port = process.env.PORT || 3000;
 
 const corsOptions = {
-  origin: "*", // Allow requests from all origins during development
+  origin: [
+    "*",
+    "https://kuryer-sushi.vercel.app",
+    "http://localhost:5173",
+    "https://joinposter.com",
+    "https://platform.joinposter.com",
+  ], // Allow requests from all origins during development
   methods: ["GET", "POST"], // Allow GET and POST requests
   credentials: true, // if your frontend sends cookies or any credentials, set this to true
 };
@@ -19,17 +25,17 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-
 app.post("/login", async (req, res) => {
   try {
-    console.log(req.body);
     const { email } = req.body; // Destructure email from req.body
     if (!email) {
       // Check if email is not provided
       return res.status(400).send({ message: "Email is required" });
     }
 
-    const response = await axios.get(`${process.env.EMPLOYEE}${process.env.TOKENNEW}`);
+    const response = await axios.get(
+      `${process.env.EMPLOYEE}${process.env.TOKENNEW}`
+    );
 
     const externalData = response.data.response.filter(
       (item) => item.role_name === "курьер" || item.role_name === "Кур’єр"
