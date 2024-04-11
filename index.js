@@ -3,8 +3,6 @@ import cors from "cors";
 import axios from "axios";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
-import admin from "firebase-admin";
-// import credentials from "./key.json" assert { type: "json" };
 import { User } from "./models/user.model.js";
 import { app, server } from "./socket/socket.js";
 
@@ -21,11 +19,6 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// const tokenSushi = "046902:6281755091471320780488d484cc4b78";
-const tokenPossible = "967898:49355888e8e490af3bcca79c5e6b1abf";
-const tokenNew = "378173:27544591ca7a63962c67f75cdcad03da"
-const employee = "https://joinposter.com/api/access.getEmployees?token=";
-// const spots = "https://joinposter.com/api/spots.getSpots?token=";
 
 app.post("/login", async (req, res) => {
   try {
@@ -35,7 +28,7 @@ app.post("/login", async (req, res) => {
       return res.status(400).send({ message: "Email is required" });
     }
 
-    const response = await axios.get(`${employee}${tokenNew}`);
+    const response = await axios.get(`${process.env.employee}${process.env.tokenNew}`);
 
     const externalData = response.data.response.filter(
       (item) => item.role_name === "курьер" || item.role_name === "Кур’єр"
