@@ -11,22 +11,53 @@ const port = process.env.PORT || 3000;
 
 const corsOptions = {
   origin: [
-    "*",
-    "https://kuryer-sushi.vercel.app",
+    "http://localhost:3000",
+    "https://localhost:3000",
     "http://localhost:5173",
+    "http://localhost:5174",
+    "https://kuryer-sushi.vercel.app",
     "https://joinposter.com",
     "https://platform.joinposter.com",
-  ], // Allow requests from all origins during development
-  methods: ["GET", "POST"], // Allow GET and POST requests
-  credentials: true, // if your frontend sends cookies or any credentials, set this to true
+    "https://92ad-84-54-84-80.ngrok-free.app",
+    "https://c853-213-230-72-138.ngrok-free.app",
+  ],
+  methods: ["GET", "POST"],
+  credentials: true,
 };
 
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.get("/", async (req, res) => {
+  console.log(req.headers.origin);
+  // res.setHeader("Access-Control-Allow-Origin", "https://localhost:5173");
+  // res.setHeader("Access-Control-Allow-Methods", "GET, POST");
+  // // Optionally, you can set more headers as needed
+
+  // // Allow credentials if needed
+  // res.setHeader("Access-Control-Allow-Credentials", "true");
+
+  const responseData = [{ name: "foo", value: "bar" }];
+
+  res.json(responseData);
+});
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+});
+
+app.get("/getSpot", async (req, res) => {
+
+  const response = await axios.get(
+    `${process.env.SPOTS}${process.env.TOKENPOSSIBLE}`
+  );
+
+  res.json(response.data.response);
+});
+
 app.post("/login", async (req, res) => {
-  console.log(req.body);
   try {
     const { email } = req.body; // Destructure email from req.body
     if (!email) {
@@ -51,7 +82,7 @@ app.post("/login", async (req, res) => {
 
     if (userOnPoster && !userOnMongo.length) {
       await User.create(userOnPoster);
-      const createUser = await User.find({ login: email })
+      const createUser = await User.find({ login: email });
       return res.status(200).send(createUser[0]);
     } else if (userOnPoster && userOnMongo) {
       return res.status(200).send(userOnMongo[0]);

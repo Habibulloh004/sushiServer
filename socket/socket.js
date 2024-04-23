@@ -12,13 +12,16 @@ const users = {};
 const io = new Server(server, {
   cors: {
     origin: [
-      "*",
-      "https://kuryer-sushi.vercel.app",
       "http://localhost:5173",
+      "https://localhost:3000",
+      "http://localhost:5174",
+      "https://kuryer-sushi.vercel.app",
       "https://joinposter.com",
       "https://platform.joinposter.com",
+      "https://c853-213-230-72-138.ngrok-free.app"
     ],
     methods: ["GET", "POST"],
+    credentials: true,
   },
 });
 
@@ -30,6 +33,7 @@ io.on("connection", (socket) => {
 
   io.emit("onlineUsers", Object.keys(userSocketMap));
   users[socket.id] = true;
+  io.emit("hey", { hey: "heyyooo whatsup broo" });
 
   socket.on("disconnect", () => {
     console.log("user disconnected", socket.id);
