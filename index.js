@@ -20,6 +20,7 @@ const corsOptions = {
     "https://platform.joinposter.com",
     "https://92ad-84-54-84-80.ngrok-free.app",
     "https://c853-213-230-72-138.ngrok-free.app",
+    "https://admin-rolling-sushi.vercel.app"
   ],
   methods: ["GET", "POST"],
   credentials: true,
@@ -44,14 +45,16 @@ app.get("/", async (req, res) => {
 });
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept"
+  );
   next();
 });
 
 app.get("/getSpot", async (req, res) => {
-
   const response = await axios.get(
-    `${process.env.SPOTS}${process.env.TOKENPOSSIBLE}`
+    `${process.env.SPOTS}${process.env.TOKENSUSHI}`
   );
 
   res.json(response.data.response);
@@ -92,6 +95,20 @@ app.post("/login", async (req, res) => {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "User not found" });
+  }
+});
+
+app.post("/api/posttoposter", async (req, res) => {
+  console.log(req.body);
+  // res.send("hello")
+  try {
+    const postData = await axios.post(
+      `https://joinposter.com/api/incomingOrders.createIncomingOrder?token=${process.env.TOKENSUSHI}`,
+      req.body
+    );
+    res.send(postData.data);
+  } catch (err) {
+    console.log(err);
   }
 });
 
