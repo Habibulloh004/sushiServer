@@ -20,7 +20,7 @@ const corsOptions = {
     "https://platform.joinposter.com",
     "https://92ad-84-54-84-80.ngrok-free.app",
     "https://c853-213-230-72-138.ngrok-free.app",
-    "https://admin-rolling-sushi.vercel.app"
+    "https://admin-rolling-sushi.vercel.app",
   ],
   methods: ["GET", "POST"],
   credentials: true,
@@ -99,16 +99,18 @@ app.post("/login", async (req, res) => {
 });
 
 app.post("/api/posttoposter", async (req, res) => {
+  const { phone, spot_id, products } = req.body;
+
   console.log(req.body);
-  // res.send("hello")
   try {
     const postData = await axios.post(
       `https://joinposter.com/api/incomingOrders.createIncomingOrder?token=${process.env.TOKENSUSHI}`,
       req.body
     );
-    res.send(postData.data);
+    res.send(JSON.stringify(postData.data)); // Send API response
   } catch (err) {
-    console.log(err);
+    console.error(err);
+    // Handle errors appropriately
   }
 });
 
