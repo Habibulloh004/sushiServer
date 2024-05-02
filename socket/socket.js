@@ -2,6 +2,7 @@ import http from "http";
 import express from "express";
 import { Server } from "socket.io";
 
+
 const app = express();
 
 const server = http.createServer(app);
@@ -18,22 +19,65 @@ const io = new Server(server, {
       "https://kuryer-sushi.vercel.app",
       "https://joinposter.com",
       "https://platform.joinposter.com",
-      "https://c853-213-230-72-138.ngrok-free.app"
+      "https://c853-213-230-72-138.ngrok-free.app",
     ],
     methods: ["GET", "POST"],
     credentials: true,
   },
 });
 
+// const otherServerSocket = socketIoClient("https://vm4983125.25ssd.had.wf:5000");
+
+// otherServerSocket.on("connect", () => {
+//   console.log("Connected to other server");
+// });
+
+// otherServerSocket.on("disconnect", (disconnect) => {
+//   console.log("Socket disconnect:", disconnect);
+// });
+// otherServerSocket.on("error", (error) => {
+//   console.error("Socket connection error:", error);
+// });
+
 io.on("connection", (socket) => {
-  console.log("user connected", socket.id);
   const userId = socket.handshake.query.userId;
+  socket.join(+userId);
 
   if (userId !== undefined) userSocketMap[userId] = socket.id;
 
-  io.emit("onlineUsers", Object.keys(userSocketMap));
+  socket.emit("onlineUsers", Object.keys(userSocketMap));
   users[socket.id] = true;
-  io.emit("hey", { hey: "heyyooo whatsup broo" });
+  // app.post("/", async (req, res) => {
+  //   const { data } = req.body;
+  //   const parsedData = JSON.parse(data);
+  //   console.log(req.body);
+
+  //   if (
+  //     parsedData?.transactions_history.type_history === "changedeliveryinfo"
+  //   ) {
+  //     try {
+  //       const response = await axios.get(
+  //         `https://joinposter.com/api/dash.getTransaction?token=${process.env.PAST}&transaction_id=${req.body?.object_id}&include_delivery=true&include_history=true&include_products=true`
+  //       );
+  //       const responseData = response.data;
+
+  //       const items = responseData.response;
+
+  //       const prods = await axios.get(
+  //         `https://joinposter.com/api/dash.getTransactionProducts?token=${process.env.PAST}&transaction_id=${req?.body?.object_id}`
+  //       );
+
+  //       console.log(prods.data.response);
+
+  //       io.emit("message", items);
+  //       console.log(items);
+  //     } catch (error) {
+  //       console.error("Error fetching transaction data:", error);
+  //     }
+  //   }
+
+  //   res.sendStatus(200)
+  // });
 
   socket.on("disconnect", () => {
     console.log("user disconnected", socket.id);

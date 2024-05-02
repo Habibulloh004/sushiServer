@@ -4,7 +4,9 @@ import axios from "axios";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import { User } from "./models/user.model.js";
-import { app, server } from "./socket/socket.js";
+import { Order } from "./models/order.model.js";
+import { app, server, io } from "./socket/socket.js";
+// import socketIoClient from "socket.io-client";
 
 dotenv.config();
 const port = process.env.PORT || 3000;
@@ -21,8 +23,9 @@ const corsOptions = {
     "https://92ad-84-54-84-80.ngrok-free.app",
     "https://c853-213-230-72-138.ngrok-free.app",
     "https://admin-rolling-sushi.vercel.app",
+    "https://www.rollingsushiadmin.uz",
   ],
-  methods: ["GET", "POST"],
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   credentials: true,
 };
 
@@ -39,10 +42,200 @@ app.get("/", async (req, res) => {
   // // Allow credentials if needed
   // res.setHeader("Access-Control-Allow-Credentials", "true");
 
+  const result = await axios.get(
+    "https://joinposter.com/api/menu.getProducts?token=046902:6281755091471320780488d484cc4b78"
+  );
+  res.send(result.data.response);
+
   const responseData = [{ name: "foo", value: "bar" }];
 
-  res.json(responseData);
+  // res.json(responseData);
 });
+
+// Use a global object to keep track of transaction processing status
+const processingStatus = {};
+
+app.post("/", async (req, res) => {
+  const { data } = req.body;
+  const parsedData = JSON.parse(data);
+  console.log(parsedData);
+  console.log("history", parsedData?.transactions_history.type_history);
+  console.log("value", parsedData?.transactions_history.value);
+
+  if (
+    parsedData?.transactions_history.type_history ===
+      "changeprocessingstatus" &&
+    parsedData?.transactions_history.value == 40
+  ) {
+    const transactionId = req.body?.object_id;
+
+    // Check if the transaction is already being processed
+    if (processingStatus[transactionId]) {
+      console.log(`Transaction ${transactionId} is already being processed`);
+      return res.status(200).send("Already processing");
+    }
+
+    // Mark the transaction as processing
+    processingStatus[transactionId] = true;
+
+    try {
+      const response = await axios.get(
+        `https://joinposter.com/api/dash.getTransaction?token=${process.env.PAST}&transaction_id=${transactionId}&include_delivery=true&include_history=true&include_products=true`
+      );
+      const responseData = response.data;
+
+      const items = responseData.response;
+
+      const prods = await axios.get(
+        `https://joinposter.com/api/dash.getTransactionProducts?token=${process.env.PAST}&transaction_id=${transactionId}`
+      );
+
+      const products = prods.data.response;
+
+      const existOrder = await Order.findOne({
+        order_id: items[0]?.transaction_id,
+      });
+
+      if (existOrder) {
+        return;
+      }
+
+      io.to(items[0]?.delivery?.courier_id).emit("message", {
+        order_id: items[0]?.transaction_id,
+        courier_id: items[0]?.delivery?.courier_id,
+        orderData: items[0],
+        products,
+        status: "waiting",
+      });
+
+      await Order.create({
+        order_id: items[0]?.transaction_id,
+        courier_id: items[0]?.delivery?.courier_id,
+        orderData: items[0],
+        products,
+        status: "waiting",
+      });
+
+      console.log("Order created:", transactionId);
+    } catch (error) {
+      console.error("Error fetching transaction data:", error);
+    } finally {
+      // Unlock the transaction once processing is complete
+      delete processingStatus[transactionId];
+    }
+  }
+  res.status(200).send("hello");
+});
+
+app.post("/socketData", async (req, res) => {
+  console.log(req.body);
+  io.emit("sct_msg", {
+    order_id: items[0]?.transaction_id,
+    courier_id: items[0]?.delivery?.courier_id,
+    orderData: items[0],
+    products,
+    status: "waiting",
+  });
+  res.send("hello");
+});
+
+app.get("/getOrders/:id", async (req, res) => {
+  const orders = await Order.find({ courier_id: req.params.id });
+  res.send(orders);
+});
+
+app.get("/getTransaction", async (req, res) => {
+  const { id, date } = req.query;
+  const response = await axios.get(
+    `https://joinposter.com/api/dash.getTransactions?token=${process.env.PAST}&dateFrom=${date}&include_delivery=true&include_products=true&courier_id=${id}`
+  );
+
+  for (let i = 0; i < response.data.response?.length; i++) {
+    const orders = await axios.get(
+      `https://joinposter.com/api/dash.getTransactionProducts?token=${process.env.PAST}&transaction_id=${response.data.response[i].transaction_id}`
+    );
+    response.data.response[i].products_name = orders.data.response;
+  }
+
+  res.send(response.data.response);
+});
+
+app.put("/changeStatus/:orderId", async (req, res) => {
+  const { orderId } = req.params;
+  const { status } = req.body;
+  const result = await Order.updateOne(
+    { order_id: orderId },
+    { $set: { status } }
+  );
+  res.send(result);
+});
+app.delete("/deleteOrder/:orderId", async (req, res) => {
+  const { orderId } = req.params;
+  const result = await Order.deleteOne({ order_id: orderId });
+  res.send(result);
+});
+
+app.get("/findOrder/:orderId", async (req, res) => {
+  const { orderId } = req.params;
+  const response = await Order.findOne({ order_id: orderId });
+
+  res.send(response);
+});
+
+// app.post("/", async (req, res) => {
+//   const { data } = req.body;
+//   const parsedData = JSON.parse(data);
+
+//   if (
+//     parsedData?.transactions_history.type_history ===
+//       "changeprocessingstatus" &&
+//     parsedData?.transactions_history.value == 40
+//   ) {
+//     try {
+//       const response = await axios.get(
+//         `https://joinposter.com/api/dash.getTransaction?token=${process.env.PAST}&transaction_id=${req.body?.object_id}&include_delivery=true&include_history=true&include_products=true`
+//       );
+//       const responseData = response.data;
+
+//       const items = responseData.response;
+
+//       const prods = await axios.get(
+//         `https://joinposter.com/api/dash.getTransactionProducts?token=${process.env.PAST}&transaction_id=${req?.body?.object_id}`
+//       );
+
+//       const products = prods.data.response;
+
+//       const existOrder = await Order.findOne({
+//         order_id: items[0]?.transaction_id,
+//       });
+//       console.log(existOrder);
+
+//       if (existOrder) {
+//         return;
+//       }
+//       io.to(items[0]?.delivery?.courier_id).emit("message", {
+//         order_id: items[0]?.transaction_id,
+//         courier_id: items[0]?.delivery?.courier_id,
+//         orderData: items[0],
+//         products,
+//       });
+//       await Order.create({
+//         order_id: items[0]?.transaction_id,
+//         courier_id: items[0]?.delivery?.courier_id,
+//         orderData: items[0],
+//         products,
+//       });
+
+//       console.log("sendData");
+//       // You can emit events or perform other actions specific to this room
+//       // For example:
+//     } catch (error) {
+//       console.error("Error fetching transaction data:", error);
+//     }
+//   }
+//   res.status(200).send("hello");
+// });
+
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header(
@@ -69,11 +262,14 @@ app.post("/login", async (req, res) => {
     }
 
     const response = await axios.get(
-      `${process.env.EMPLOYEE}${process.env.TOKENPOSSIBLE}`
+      `${process.env.EMPLOYEE}${process.env.PAST}`
     );
 
     const externalData = response.data.response.filter(
-      (item) => item.role_name === "курьер" || item.role_name === "Кур’єр"
+      (item) =>
+        item.role_name === "курьер" ||
+        item.role_name === "Кур’єр" ||
+        item.role_name === "Курьер"
     );
 
     const userOnPoster = externalData.find(
@@ -99,20 +295,29 @@ app.post("/login", async (req, res) => {
 });
 
 app.post("/api/posttoposter", async (req, res) => {
-  const { phone, spot_id, products } = req.body;
-
-  console.log(req.body);
   try {
     const postData = await axios.post(
-      `https://joinposter.com/api/incomingOrders.createIncomingOrder?token=${process.env.TOKENSUSHI}`,
+      `https://joinposter.com/api/incomingOrders.createIncomingOrder?token=${process.env.PAST}`,
       req.body
     );
-    res.send(JSON.stringify(postData.data)); // Send API response
+    res.send(postData.data); // Send API response
   } catch (err) {
     console.error(err);
     // Handle errors appropriately
   }
 });
+
+// const socketServerUrl = "https://vm4983125.25ssd.had.wf"; // URL of the Socket.IO server
+
+// const socket = socketIoClient(socketServerUrl);
+
+// socket.on("connect", () => {
+//   console.log("Connected to Socket.IO server");
+// });
+
+// socket.on("disconnect", () => {
+//   console.log("Disconnected from Socket.IO server");
+// });
 
 mongoose
   .connect(process.env.CONNECT_DB)
