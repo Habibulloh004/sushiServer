@@ -148,7 +148,11 @@ app.get("/getOrders/:id", async (req, res) => {
 app.get("/getTransaction", async (req, res) => {
   const { id, date } = req.query;
   const response = await axios.get(
-    `https://joinposter.com/api/dash.getTransactions?token=${process.env.PAST}&dateFrom=${date}&include_delivery=true&include_products=true&courier_id=${id}&include_history=true`
+    `https://joinposter.com/api/dash.getTransactions?token=${
+      process.env.PAST
+    }&dateFrom=${date}&dateTo=${
+      +date + 1
+    }&include_delivery=true&include_products=true&courier_id=${id}&include_history=true`
   );
 
   for (let i = 0; i < response.data.response?.length; i++) {
@@ -157,9 +161,10 @@ app.get("/getTransaction", async (req, res) => {
     );
     response.data.response[i].products_name = orders.data.response;
     const backOrder = await axios.get(
-      `https://vm4983125.25ssd.had.wf:5000/get_order/${response.data.response[i].transaction_id}`
+      `https://vm4983125.25ssd.had.wf:5000/get_order/${response.data.response[i]?.transaction_comment}`
     );
     response.data.response[i].backOrder = backOrder.data;
+    console.log(response.data.response[i].transaction_comment);
   }
 
   res.send(response.data.response);
