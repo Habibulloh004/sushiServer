@@ -12,19 +12,21 @@ dotenv.config();
 const port = process.env.PORT || 3000;
 
 const corsOptions = {
-  origin: [
-    // "http://localhost:3000",
-    // "https://localhost:3000",
-    // "http://localhost:5173",
-    // "http://localhost:5174",
-    "https://kuryer-sushi.vercel.app",
-    "https://joinposter.com",
-    "https://platform.joinposter.com",
-    // "https://92ad-84-54-84-80.ngrok-free.app",
-    // "https://c853-213-230-72-138.ngrok-free.app",
-    "https://admin-rolling-sushi.vercel.app",
-    "https://www.rollingsushiadmin.uz",
-  ],
+  origin: "*",
+  // [
+  //   // "http://localhost:3000",
+  //   // "https://localhost:3000",
+  //   // "http://localhost:5173",
+  //   // "http://localhost:5174",
+  //   "https://kuryer-sushi.vercel.app",
+  //   "https://joinposter.com",
+  //   "https://platform.joinposter.com",
+  //   "http://localhost:5173",
+  //   // "https://92ad-84-54-84-80.ngrok-free.app",
+  //   // "https://c853-213-230-72-138.ngrok-free.app",
+  //   "https://admin-rolling-sushi.vercel.app",
+  //   "https://www.rollingsushiadmin.uz",
+  // ],
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   credentials: true,
 };
@@ -52,7 +54,6 @@ app.get("/", async (req, res) => {
   // res.json(responseData);
 });
 
-// Use a global object to keep track of transaction processing status
 const processingStatus = {};
 
 app.post("/", async (req, res) => {
@@ -147,28 +148,78 @@ app.get("/getOrders/:id", async (req, res) => {
 
 app.get("/getTransaction", async (req, res) => {
   const { id, date } = req.query;
-  const response = await axios.get(
-    `https://joinposter.com/api/dash.getTransactions?token=${
-      process.env.PAST
-    }&dateFrom=${date}&dateTo=${
-      +date + 1
-    }&include_delivery=true&include_products=true&courier_id=${id}&include_history=true`
-  );
 
-  for (let i = 0; i < response.data.response?.length; i++) {
-    const orders = await axios.get(
-      `https://joinposter.com/api/dash.getTransactionProducts?token=${process.env.PAST}&transaction_id=${response.data.response[i].transaction_id}`
+  try {
+    const response = await axios.get(
+      `https://joinposter.com/api/dash.getTransactions?token=${process.env.PAST}&dateFrom=${date}&dateTo=${date}&include_delivery=true&include_products=true&courier_id=${id}&include_history=true`
     );
-    response.data.response[i].products_name = orders.data.response;
-    const backOrder = await axios.get(
-      `https://vm4983125.25ssd.had.wf:5000/get_order/${response.data.response[i]?.transaction_comment}`
-    );
-    response.data.response[i].backOrder = backOrder.data;
-    console.log(response.data.response[i].transaction_comment);
+    console.log(id);
+
+    if (!response.data.response) {
+      return res.send({ error: "No transactions found." });
+    }
+
+    const transactions = response.data.response.map(async (transaction) => {
+      try {
+        const orders = await axios.get(
+          `https://joinposter.com/api/dash.getTransactionProducts?token=${process.env.PAST}&transaction_id=${transaction.transaction_comment}`
+        );
+        transaction.products_name = orders?.data.response;
+      } catch (error) {
+        console.error("Error fetching products for transaction:", transaction.transaction_comment, error);
+      }
+
+      try {
+        const backOrder = await axios.get(
+          `https://vm4983125.25ssd.had.wf:5000/get_order/${transaction.transaction_comment}`
+        );
+        console.log("com",transaction.transaction_comment);
+        if (backOrder.data) transaction.backOrder = backOrder?.data;
+      } catch (error) {
+        console.error("Error fetching back order for transaction:", transaction.transaction_id, error);
+      }
+
+      return transaction;
+    });
+
+    const processedTransactions = await Promise.all(transactions);
+    res.send(processedTransactions);
+  } catch (error) {
+    console.error("Error fetching transactions:", error);
+    res.status(500).send({ error: "Internal Server Error" }); // Handle general errors
   }
-
-  res.send(response.data.response);
 });
+
+// app.get("/getTransaction", async (req, res) => {
+//   const { id, date } = req.query;
+//   const response = await axios.get(
+//     `https://joinposter.com/api/dash.getTransactions?token=${
+//       process.env.PAST
+//     }&dateFrom=${date}&dateTo=${
+//       +date + 1
+//     }&include_delivery=true&include_products=true&courier_id=${id}&include_history=true`
+//   );
+
+//   if (!response.data.response) {
+//     return res.send({ error: "No transactions found." }); // Handle no transactions
+//   }
+//   for (let i = 0; i < response.data.response?.length; i++) {
+//     const orders = await axios.get(
+//       `https://joinposter.com/api/dash.getTransactionProducts?token=${process.env.PAST}&transaction_id=${response?.data.response[i].transaction_id}`
+//     );
+//     response.data.response[i].products_name = orders?.data.response;
+//     const backOrder = await axios.get(
+//       `https://vm4983125.25ssd.had.wf:5000/get_order/${response?.data.response[i].transaction_comment}`
+//     );
+//     if (backOrder.data) response.data.response[i].backOrder = backOrder?.data;
+//   }
+
+//   res.send(
+//     response.data.response
+//       ? response.data.response
+//       : [{ data: "order not found" }]
+//   );
+// });
 
 app.put("/changeStatus/:orderId", async (req, res) => {
   const { orderId } = req.params;
@@ -316,18 +367,6 @@ app.post("/api/posttoposter", async (req, res) => {
     // Handle errors appropriately
   }
 });
-
-// const socketServerUrl = "https://vm4983125.25ssd.had.wf"; // URL of the Socket.IO server
-
-// const socket = socketIoClient(socketServerUrl);
-
-// socket.on("connect", () => {
-//   console.log("Connected to Socket.IO server");
-// });
-
-// socket.on("disconnect", () => {
-//   console.log("Disconnected from Socket.IO server");
-// });
 
 mongoose
   .connect(process.env.CONNECT_DB)
