@@ -13,15 +13,15 @@ const port = process.env.PORT || 3000;
 
 const corsOptions = {
   origin: [
-    "http://localhost:3000",
-    "https://localhost:3000",
-    "http://localhost:5173",
-    "http://localhost:5174",
+    // "http://localhost:3000",
+    // "https://localhost:3000",
+    // "http://localhost:5173",
+    // "http://localhost:5174",
     "https://kuryer-sushi.vercel.app",
     "https://joinposter.com",
     "https://platform.joinposter.com",
-    "https://92ad-84-54-84-80.ngrok-free.app",
-    "https://c853-213-230-72-138.ngrok-free.app",
+    // "https://92ad-84-54-84-80.ngrok-free.app",
+    // "https://c853-213-230-72-138.ngrok-free.app",
     "https://admin-rolling-sushi.vercel.app",
     "https://www.rollingsushiadmin.uz",
   ],
