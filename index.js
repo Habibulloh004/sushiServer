@@ -153,7 +153,6 @@ app.get("/getTransaction", async (req, res) => {
     const response = await axios.get(
       `https://joinposter.com/api/dash.getTransactions?token=${process.env.PAST}&dateFrom=${date}&dateTo=${date}&include_delivery=true&include_products=true&courier_id=${id}&include_history=true`
     );
-    console.log(id);
 
     if (!response.data.response) {
       return res.send({ error: "No transactions found." });
@@ -162,21 +161,33 @@ app.get("/getTransaction", async (req, res) => {
     const transactions = response.data.response.map(async (transaction) => {
       try {
         const orders = await axios.get(
-          `https://joinposter.com/api/dash.getTransactionProducts?token=${process.env.PAST}&transaction_id=${transaction.transaction_comment}`
+          `https://joinposter.com/api/dash.getTransactionProducts?token=${process.env.PAST}&transaction_id=${transaction.transaction_id}`
         );
-        transaction.products_name = orders?.data.response;
+        if (orders.data && orders.data.response) {
+          transaction.products_name = orders.data.response;
+        } else {
+          transaction.products_name = []; // Set to empty array if no product data
+        }
       } catch (error) {
-        console.error("Error fetching products for transaction:", transaction.transaction_comment, error);
+        console.error(
+          "Error fetching products for transaction:",
+          transaction.transaction_comment,
+          error
+        );
+        transaction.products_name = []; // Set to empty array on error
       }
 
       try {
         const backOrder = await axios.get(
           `https://vm4983125.25ssd.had.wf:5000/get_order/${transaction.transaction_comment}`
         );
-        console.log("com",transaction.transaction_comment);
         if (backOrder.data) transaction.backOrder = backOrder?.data;
       } catch (error) {
-        console.error("Error fetching back order for transaction:", transaction.transaction_id, error);
+        console.error(
+          "Error fetching back order for transaction:",
+          transaction.transaction_id,
+          error
+        );
       }
 
       return transaction;
@@ -189,6 +200,49 @@ app.get("/getTransaction", async (req, res) => {
     res.status(500).send({ error: "Internal Server Error" }); // Handle general errors
   }
 });
+
+// app.get("/getTransaction", async (req, res) => {
+//   const { id, date } = req.query;
+
+//   try {
+//     const response = await axios.get(
+//       `https://joinposter.com/api/dash.getTransactions?token=${process.env.PAST}&dateFrom=${date}&dateTo=${date}&include_delivery=true&include_products=true&courier_id=${id}&include_history=true`
+//     );
+
+//     if (!response.data.response) {
+//       return res.send({ error: "No transactions found." });
+//     }
+
+//     const transactions = response.data.response.map(async (transaction) => {
+//       try {
+//         const orders = await axios.get(
+//           `https://joinposter.com/api/dash.getTransactionProducts?token=${process.env.PAST}&transaction_id=${transaction.transaction_comment}`
+//         );
+//         console.log("pr_name", orders?.data);
+//         transaction.products_name = orders?.data.response;
+//       } catch (error) {
+//         console.error("Error fetching products for transaction:", transaction.transaction_comment, error);
+//       }
+
+//       try {
+//         const backOrder = await axios.get(
+//           `https://vm4983125.25ssd.had.wf:5000/get_order/${transaction.transaction_comment}`
+//         );
+//         if (backOrder.data) transaction.backOrder = backOrder?.data;
+//       } catch (error) {
+//         console.error("Error fetching back order for transaction:", transaction.transaction_id, error);
+//       }
+
+//       return transaction;
+//     });
+
+//     const processedTransactions = await Promise.all(transactions);
+//     res.send(processedTransactions);
+//   } catch (error) {
+//     console.error("Error fetching transactions:", error);
+//     res.status(500).send({ error: "Internal Server Error" }); // Handle general errors
+//   }
+// });
 
 // app.get("/getTransaction", async (req, res) => {
 //   const { id, date } = req.query;
