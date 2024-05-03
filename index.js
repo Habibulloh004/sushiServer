@@ -146,14 +146,6 @@ app.get("/getOrders/:id", async (req, res) => {
 });
 
 app.get("/getTransaction", async (req, res) => {
-  res.setHeader(
-    "Access-Control-Allow-Origin",
-    "https://kuryer-sushi.vercel.app/"
-  );
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST"); // Adjust methods if needed
-  // Optionally, set more headers as needed
-  res.setHeader("Access-Control-Allow-Credentials", "true"); // Allow credentials if needed
-
   const { id, date } = req.query;
   const response = await axios.get(
     `https://joinposter.com/api/dash.getTransactions?token=${
