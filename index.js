@@ -1,4 +1,3 @@
-
 import express from "express";
 import cors from "cors";
 import axios from "axios";
@@ -61,9 +60,8 @@ app.post("/", async (req, res) => {
   console.log(req.body);
   const { data } = req.body;
   const parsedData = JSON?.parse(data);
-  console.log(parsedData);
-  console.log("history", parsedData?.transactions_history.type_history);
-  console.log("value", parsedData?.transactions_history.value);
+  // console.log("history", parsedData?.transactions_history.type_history);
+  // console.log("value", parsedData?.transactions_history.value);
 
   if (
     parsedData?.transactions_history.type_history ===
@@ -128,6 +126,75 @@ app.post("/", async (req, res) => {
     }
   }
   res.send(200);
+});
+
+const processingStatus2 = {};
+
+app.post("/posterFromMe", async (req, res) => {
+  const transactionId = +req.body?.order.orderName;
+
+  // Check if the transaction is already being processed
+  if (processingStatus2[transactionId]) {
+    console.log(`Transaction ${transactionId} is already being processed`);
+    return res.status(200).send("Already processing");
+  }
+
+  // Mark the transaction as processing
+  processingStatus2[transactionId] = true;
+  try {
+    const response = await axios.get(
+      `https://joinposter.com/api/dash.getTransaction?token=${process.env.PAST}&transaction_id=${transactionId}&include_delivery=true&include_history=true&include_products=true`
+    );
+    
+    const responseData = response.data;
+
+    const items = responseData.response;
+
+    const prods = await axios.get(
+      `https://joinposter.com/api/dash.getTransactionProducts?token=${process.env.PAST}&transaction_id=${transactionId}`
+    );
+
+    const products = prods.data.response;
+
+    const existOrder = await Order.findOne({
+      order_id: items[0]?.transaction_id,
+    });
+
+    if (existOrder) {
+      return;
+    }
+
+    io.to(items[0]?.delivery?.courier_id).emit("message", {
+      order_id: items[0]?.transaction_id,
+      courier_id: items[0]?.delivery?.courier_id,
+      orderData: items[0],
+      products,
+      status: "waiting",
+    });
+
+    await Order.create({
+      order_id: items[0]?.transaction_id,
+      courier_id: items[0]?.delivery?.courier_id,
+      orderData: items[0],
+      products,
+      status: "waiting",
+    });
+    const sendData = {
+      order_id: items[0]?.transaction_id,
+      courier_id: items[0]?.delivery?.courier_id,
+      orderData: items[0],
+      products,
+      status: "waiting",
+    };
+    res.send(sendData);
+
+    console.log("Order created:", transactionId);
+  } catch (error) {
+    console.error("Error fetching transaction data:", error);
+  } finally {
+    // Unlock the transaction once processing is complete
+    delete processingStatus2[transactionId];
+  }
 });
 
 app.post("/socketData", async (req, res) => {
