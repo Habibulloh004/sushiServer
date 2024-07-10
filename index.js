@@ -58,11 +58,6 @@ const processingStatus = {};
 
 app.post("/", async (req, res) => {
   console.log(req.body);
-  const { data } = req.body;
-  const parsedData = JSON?.parse(data);
-  // console.log("history", parsedData?.transactions_history.type_history);
-  // console.log("value", parsedData?.transactions_history.value);
-
  
   res.send(200);
 });
