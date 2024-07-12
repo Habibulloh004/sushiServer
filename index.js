@@ -146,7 +146,7 @@ app.post("/posterFromMe", async (req, res) => {
     const response = await axios.get(
       `https://joinposter.com/api/dash.getTransaction?token=${process.env.PAST}&transaction_id=${transactionId}&include_delivery=true&include_history=true&include_products=true`
     );
-    
+
     const responseData = response.data;
 
     const items = responseData.response;
@@ -165,7 +165,7 @@ app.post("/posterFromMe", async (req, res) => {
       return;
     }
 
-    console.log("creating order", items)
+    console.log("creating order", items);
     io.to(items[0]?.delivery?.courier_id).emit("message", {
       order_id: items[0]?.transaction_id,
       courier_id: items[0]?.delivery?.courier_id,
@@ -209,6 +209,12 @@ app.post("/socketData", async (req, res) => {
     status: "waiting",
   });
   res.send("hello");
+});
+
+app.post("/postFromStark", async (req, res) => {
+  console.log(req.body);
+  io.emit("orderItem", req.body);
+  res.send("posted successfully")
 });
 
 app.get("/getOrders/:id", async (req, res) => {
