@@ -165,6 +165,7 @@ app.post("/posterFromMe", async (req, res) => {
       return;
     }
 
+    console.log("creating order", items)
     io.to(items[0]?.delivery?.courier_id).emit("message", {
       order_id: items[0]?.transaction_id,
       courier_id: items[0]?.delivery?.courier_id,
