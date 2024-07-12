@@ -20,6 +20,7 @@ const io = new Server(server, {
       "https://joinposter.com",
       "https://platform.joinposter.com",
       "https://c853-213-230-72-138.ngrok-free.app",
+      "https://www.rollingsushiadmin.uz"
     ],
     methods: ["GET", "POST"],
     credentials: true,
