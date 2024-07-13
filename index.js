@@ -131,7 +131,7 @@ app.post("/", async (req, res) => {
 const processingStatus2 = {};
 
 app.post("/posterFromMe", async (req, res) => {
-  console.log("poster sended",req.body);
+  console.log("poster sended", req.body);
   const transactionId = +req.body?.order.orderName;
 
   // Check if the transaction is already being processed
@@ -153,7 +153,6 @@ app.post("/posterFromMe", async (req, res) => {
 
     console.log("creating order", items);
 
-
     const prods = await axios.get(
       `https://joinposter.com/api/dash.getTransactionProducts?token=${process.env.PAST}&transaction_id=${transactionId}`
     );
@@ -168,33 +167,31 @@ app.post("/posterFromMe", async (req, res) => {
       return;
     }
 
-    console.log("courierid", items[0]?.delivery?.courier_id)
-    if(!items[0]?.delivery?.courier_id) {
-      io.to(items[0]?.delivery?.courier_id).emit("message", {
-        order_id: items[0]?.transaction_id,
-        courier_id: items[0]?.delivery?.courier_id,
-        orderData: items[0],
-        products,
-        status: "waiting",
-      });
-  
-      await Order.create({
-        order_id: items[0]?.transaction_id,
-        courier_id: items[0]?.delivery?.courier_id,
-        orderData: items[0],
-        products,
-        status: "waiting",
-      });
-      const sendData = {
-        order_id: items[0]?.transaction_id,
-        courier_id: items[0]?.delivery?.courier_id,
-        orderData: items[0],
-        products,
-        status: "waiting",
-      };
-      res.send(sendData);
-    }
-    res.send("not created", items)
+    console.log("courierid", items[0]?.delivery?.courier_id);
+    console.log("req courierid", req.body.order.deliveryInfo.courierId);
+    io.to(items[0]?.delivery?.courier_id).emit("message", {
+      order_id: items[0]?.transaction_id,
+      courier_id: items[0]?.delivery?.courier_id,
+      orderData: items[0],
+      products,
+      status: "waiting",
+    });
+
+    await Order.create({
+      order_id: items[0]?.transaction_id,
+      courier_id: items[0]?.delivery?.courier_id || req.body.order.deliveryInfo.courierId,
+      orderData: items[0],
+      products,
+      status: "waiting",
+    });
+    const sendData = {
+      order_id: items[0]?.transaction_id,
+      courier_id: items[0]?.delivery?.courier_id,
+      orderData: items[0],
+      products,
+      status: "waiting",
+    };
+    res.send(sendData);
 
     console.log("Order created:", transactionId);
   } catch (error) {
@@ -220,7 +217,7 @@ app.post("/socketData", async (req, res) => {
 app.post("/postFromStark", async (req, res) => {
   console.log(req.body);
   io.emit("orderItem", req.body);
-  res.send("posted successfully")
+  res.send("posted successfully");
 });
 
 app.get("/getOrders/:id", async (req, res) => {
