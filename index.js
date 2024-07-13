@@ -151,6 +151,9 @@ app.post("/posterFromMe", async (req, res) => {
 
     const items = responseData.response;
 
+    console.log("creating order", items);
+
+
     const prods = await axios.get(
       `https://joinposter.com/api/dash.getTransactionProducts?token=${process.env.PAST}&transaction_id=${transactionId}`
     );
@@ -165,30 +168,32 @@ app.post("/posterFromMe", async (req, res) => {
       return;
     }
 
-    console.log("creating order", items);
-    io.to(items[0]?.delivery?.courier_id).emit("message", {
-      order_id: items[0]?.transaction_id,
-      courier_id: items[0]?.delivery?.courier_id,
-      orderData: items[0],
-      products,
-      status: "waiting",
-    });
-
-    await Order.create({
-      order_id: items[0]?.transaction_id,
-      courier_id: items[0]?.delivery?.courier_id,
-      orderData: items[0],
-      products,
-      status: "waiting",
-    });
-    const sendData = {
-      order_id: items[0]?.transaction_id,
-      courier_id: items[0]?.delivery?.courier_id,
-      orderData: items[0],
-      products,
-      status: "waiting",
-    };
-    res.send(sendData);
+    if(!items[0]?.delivery?.courier_id) {
+      io.to(items[0]?.delivery?.courier_id).emit("message", {
+        order_id: items[0]?.transaction_id,
+        courier_id: items[0]?.delivery?.courier_id,
+        orderData: items[0],
+        products,
+        status: "waiting",
+      });
+  
+      await Order.create({
+        order_id: items[0]?.transaction_id,
+        courier_id: items[0]?.delivery?.courier_id,
+        orderData: items[0],
+        products,
+        status: "waiting",
+      });
+      const sendData = {
+        order_id: items[0]?.transaction_id,
+        courier_id: items[0]?.delivery?.courier_id,
+        orderData: items[0],
+        products,
+        status: "waiting",
+      };
+      res.send(sendData);
+    }
+    res.send("not created", items)
 
     console.log("Order created:", transactionId);
   } catch (error) {
