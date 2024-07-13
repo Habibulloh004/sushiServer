@@ -131,7 +131,7 @@ app.post("/", async (req, res) => {
 const processingStatus2 = {};
 
 app.post("/posterFromMe", async (req, res) => {
-  console.log(req.body);
+  console.log("poster sended",req.body);
   const transactionId = +req.body?.order.orderName;
 
   // Check if the transaction is already being processed
