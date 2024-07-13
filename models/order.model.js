@@ -7,6 +7,7 @@ const OrderSchema = mongoose.Schema({
   },
   courier_id: {
     type: Number,
+    required: true
   },
   orderData: {
     type: Object,
