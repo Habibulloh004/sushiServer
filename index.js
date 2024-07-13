@@ -179,7 +179,7 @@ app.post("/posterFromMe", async (req, res) => {
 
     await Order.create({
       order_id: items[0]?.transaction_id,
-      courier_id: items[0]?.delivery?.courier_id || req.body.order.deliveryInfo.courierId,
+      courier_id: Number(items[0]?.delivery?.courier_id) || Number(req.body.order.deliveryInfo.courierId),
       orderData: items[0],
       products,
       status: "waiting",
