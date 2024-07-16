@@ -219,7 +219,7 @@ app.post("/socketData", async (req, res) => {
 app.post("/deleteOrder", async (req, res) => {
   console.log("poster deleted", req.body);
   // const result = await Order.deleteOne({ "orderData.transaction_comment": req.body.comment });
-  io.emit("deletedOrder", req.body.comment);
+  io.sockets.emit("removeOrder", req.body.comment);
 
 
   res.send("ok");
