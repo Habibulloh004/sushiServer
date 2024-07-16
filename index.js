@@ -221,7 +221,7 @@ app.post("/deleteOrder", async (req, res) => {
 
   // const result = await Order.deleteOne({ "orderData.transaction_comment": req.body.comment });
 
-  io.to("15").emit("removeOrder", req.body.comment);
+  io.emit("removeOrder", req.body);
   // io.on("connection", (socket) => {
   //   socket.broadcast.emit("removeOrder", req.body.comment);
   // });
