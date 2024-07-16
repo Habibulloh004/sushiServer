@@ -220,9 +220,11 @@ app.post("/deleteOrder", async (req, res) => {
   console.log("poster deleted", req.body);
 
   // const result = await Order.deleteOne({ "orderData.transaction_comment": req.body.comment });
-  
-  io.to(15).emit("removeOrder", req.body.comment);
 
+  // io.to(15).emit("removeOrder", req.body.comment);
+  io.on("connection", (socket) => {
+    socket.broadcast.emit("removeOrder", req.body.comment);
+  });
 
   res.send("ok");
 });
