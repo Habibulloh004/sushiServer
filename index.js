@@ -179,7 +179,9 @@ app.post("/posterFromMe", async (req, res) => {
 
     await Order.create({
       order_id: items[0]?.transaction_id,
-      courier_id: Number(items[0]?.delivery?.courier_id) || Number(req.body.order.deliveryInfo.courierId),
+      courier_id:
+        Number(items[0]?.delivery?.courier_id) ||
+        Number(req.body.order.deliveryInfo.courierId),
       orderData: items[0],
       products,
       status: "waiting",
@@ -212,6 +214,14 @@ app.post("/socketData", async (req, res) => {
     status: "waiting",
   });
   res.send("hello");
+});
+
+app.post("/deleteOrder", async (req, res) => {
+  console.log("poster deleted", req.body);
+  const result = await Order.deleteOne({ "orderData.transaction_comment": req.body.order.comment });
+  io.emit("deletedOrder", req.body.order.comment);
+
+  res.send(result);
 });
 
 app.post("/postFromStark", async (req, res) => {
