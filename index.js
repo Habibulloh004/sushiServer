@@ -218,10 +218,10 @@ app.post("/socketData", async (req, res) => {
 
 app.post("/deleteOrder", async (req, res) => {
   console.log("poster deleted", req.body);
-  const result = await Order.deleteOne({ "orderData.transaction_comment": req.body.order.comment });
-  io.emit("deletedOrder", req.body.order.comment);
+  // const result = await Order.deleteOne({ "orderData.transaction_comment": req.body.order.comment });
+  // io.emit("deletedOrder", req.body.order.comment);
 
-  res.send(result);
+  res.send("result");
 });
 
 app.post("/postFromStark", async (req, res) => {
