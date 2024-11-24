@@ -6,6 +6,8 @@ import mongoose from "mongoose";
 import { User } from "./models/user.model.js";
 import { Order } from "./models/order.model.js";
 import { app, server, io } from "./socket/socket.js";
+import admin from "firebase-admin";
+import { Notify } from "./models/notify.model.js";
 // import socketIoClient from "socket.io-client";
 
 dotenv.config();
@@ -35,6 +37,76 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+
+// Initialize Firebase Admin SDK
+admin.initializeApp({
+  credential: admin.credential.cert({
+    type: process.env.FIREBASE_TYPE,
+    project_id: process.env.FIREBASE_PROJECT_ID,
+    private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID,
+    private_key: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
+    client_email: process.env.FIREBASE_CLIENT_EMAIL,
+    client_id: process.env.FIREBASE_CLIENT_ID,
+    auth_uri: process.env.FIREBASE_AUTH_URI,
+    token_uri: process.env.FIREBASE_TOKEN_URI,
+    auth_provider_x509_cert_url:
+      process.env.FIREBASE_AUTH_PROVIDER_X509_CERT_URL,
+    client_x509_cert_url: process.env.FIREBASE_CLIENT_X509_CERT_URL,
+  }),
+});
+
+async function sendNotificationToTopic(token, language, status) {
+  const messages = {
+    accept: {
+      en: "Your order has been accepted",
+      ru: "Ваш заказ был принят",
+      uz: "Sizning buyurtmangiz qabul qilindi",
+    },
+    cooking: {
+      en: "Your order is being prepared",
+      ru: "Ваш заказ готовится",
+      uz: "Sizning buyurtmangiz tayyorlanmoqda",
+    },
+    delivery: {
+      en: "Your order is with the courier",
+      ru: "Ваш заказ у курьера",
+      uz: "Sizning buyurtmangiz kuryerda",
+    },
+    finished: {
+      en: "Your order has arrived",
+      ru: "Ваш заказ прибыл",
+      uz: "Sizning buyurtmangiz yetib keldi",
+    },
+  };
+
+  const bodyMessage = messages[status]
+    ? messages[status][language]
+    : "Order status update";
+
+  const payload = {
+    // topic: topic,
+    token: token,
+    notification: {
+      title: "Rolling sushi",
+      body: bodyMessage,
+    },
+    data: {
+      orderId: "123456",
+      status: "Confirmed",
+    },
+  };
+
+  try {
+    const response = await admin.messaging().send(payload);
+    console.log("Notification sent successfully to topic:", response);
+  } catch (error) {
+    console.error("Error sending notification to topic:", error);
+  }
+}
+
+// const topic = "order_updates"; // Replace with your topic name
+// sendNotificationToTopic(topic);
+
 app.get("/", async (req, res) => {
   console.log(req.headers.origin);
   // res.setHeader("Access-Control-Allow-Origin", "https://localhost:5173");
@@ -55,6 +127,26 @@ app.get("/", async (req, res) => {
 });
 
 const processingStatus = {};
+
+app.post("/notify", async (req, res) => {
+  console.log(req.body);
+  const { fcm, fcm_lng, status } = req.body;
+  sendNotificationToTopic(fcm, fcm_lng, status);
+  res.send("ok");
+});
+
+app.get("/getNews", async (req, res) => {
+  const news = await Notify.find({});
+  res.send(news);
+});
+
+app.post("/createNews", async (req, res) => {
+  console.log(req.body);
+  const { title, subTitle, text } = req.body;
+  const createNews = await Notify.create({ title, subTitle, text });
+
+  res.send(createNews);
+});
 
 app.post("/", async (req, res) => {
   console.log(req.body);
@@ -219,7 +311,9 @@ app.post("/socketData", async (req, res) => {
 app.post("/deleteOrder", async (req, res) => {
   console.log("poster deleted", req.body);
 
-  const result = await Order.deleteOne({ "orderData.transaction_comment": req.body.comment });
+  const result = await Order.deleteOne({
+    "orderData.transaction_comment": req.body.comment,
+  });
 
   io.emit("removeOrder", req.body.comment);
 
@@ -379,6 +473,13 @@ app.delete("/deleteOrder/:orderId", async (req, res) => {
   const { orderId } = req.params;
   const result = await Order.deleteOne({ order_id: orderId });
   res.send(result);
+});
+
+app.delete("/deleteOrders/:clientId", async (req, res) => {
+  console.log(req.params.clientId);
+  const data = await Order.deleteMany({ courier_id: req.params.clientId });
+  console.log(data);
+  res.send(`delete successfully ${req.params.clientId}`);
 });
 
 app.get("/findOrder/:orderId", async (req, res) => {
