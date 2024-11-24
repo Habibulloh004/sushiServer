@@ -37,21 +37,23 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-
 // Initialize Firebase Admin SDK
 admin.initializeApp({
   credential: admin.credential.cert({
-    type: process.env.FIREBASE_TYPE,
-    project_id: process.env.FIREBASE_PROJECT_ID,
-    private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID,
-    private_key: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
-    client_email: process.env.FIREBASE_CLIENT_EMAIL,
-    client_id: process.env.FIREBASE_CLIENT_ID,
-    auth_uri: process.env.FIREBASE_AUTH_URI,
-    token_uri: process.env.FIREBASE_TOKEN_URI,
-    auth_provider_x509_cert_url:
-      process.env.FIREBASE_AUTH_PROVIDER_X509_CERT_URL,
-    client_x509_cert_url: process.env.FIREBASE_CLIENT_X509_CERT_URL,
+    type: "service_account",
+    project_id: "rolling-sushi-project",
+    private_key_id: "46087e412a72d59c659b088b1cda997d870f0952",
+    private_key:
+      "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDA5oCbXBCdVLLl\nKMVHlPwDgsWah/H11TwsQ5lVc5qMcaOQIRPlLnZI5hqYQP7EPYvVltXiMbddozPT\nBIVQJRMV2thSr8pUZQCAe0/w1XJgVov52fMRUy1+G3VnpWGsDhq3J4G/DEZyNRfY\nGFfZHWbmBbBSCvJI3zUMlhHpFQt9Eu46iFk4tZoM05uyem65x/GmxfEDNxYIkvc5\nNZvvqFllvNCCdw8Q+2xRqYr41TKyUgzrhi2C1e0X8vce8sjWCpTCwS3M8Iah7BFg\nM1YljYrR3tyKU8XyW67d6diyq8Nhf7pywoYZYjjoM6uJO9/NQvZQnvDrQKxEz26g\np7SGewwXAgMBAAECggEAF+i6CgeYO5fy8HpkMWIi9mBwE55D/D9ozOe4CqJghoXT\nSxr+d0qR+KkkpLhxm2sxeNDQQ8/7tUx0MPR/fZaKzgupAl6tilZWgJZIK0aZfZ1c\njiRYf0469kV7ANS7zXKWFxt7dm2UEbXI9czWnp+JUHtmBlU7AJNB5QR4xdYI7YCD\nFQH8OurlOumewmvVr79mGq0XQITFRA/usyMGe1WWeQdA3oM15KQz7zRizjtkpzBf\npjuVWHQ+u7oTvl+uwlHHzy2P5Hfo9Q3y0JoxpDGwxbB3aTPMAQb4aOXcj+thD1Us\nm7smNwM9XuKnATyZPJuOzulqo4WvlTGnsr4Re3G28QKBgQDhH5NUSsobRTT86htL\nO3yGvQ7np+a7lxs+rLqR/lEbjlG13Zma5FGxHPHJd2AmmwuC0pPVYQjALjzKdLN8\nJENwWeNJ3l4DjKtYga+XJ31yTc4/NjBgfULywPr2TPpctzLmwXF2E7gf8ifUmSc/\n+DYq5aBV2PiXr077yDofcXIP7wKBgQDbW4e3V2XtmBlaC9PWQxsb7tB4xq+xvw1t\nQZO6OpSbtOLVoe59qk/k41W2A7xezPYV6ZJUeZ3NQ7G3SYtfqqt/xjQtbMxENfgF\nJpcWwDAFoEuTqfLC8BIaUR06pbv1mM05BI585ySmJXntMPOs/8qZW0rzSPtueEeI\n/P5LUeKeWQKBgEUdBIYkT9f/bz0WQjrekGRtNl44VcXRpjOfo8eeZBgpoTxMRBQh\ndFMDp9dKJuKzRt1q+KfRmnYlu9QL7+50059yeSz8b7B3R0NszROCtCibam5NnJyC\n2ELerC1hhJtiQuZFDShK9YQZO9ExE7O36ClTRd4VNnya/Yye8/kjQvlRAoGBAKga\njPdEUyix1zvatI0PAEd3zOvB2AMvluqTxtKA8kIhbXSqlEpZqsCON7E1S7aa/Dvu\ns+VpDjWwGxGLmvPFp4hULMhjCGd9tIS9/ivBPQwSu9h99TzPHhBs+SlouZKNdziq\n9UdjHAL31Wigix2ZKXo9LEMlOwp9wtSIjZjLOBCBAoGAMJKVvqJYB6/X629jrSuQ\njw3PVrNtzkc5PPSRbLIxCYq+7SJZNWL17aOOnyJw7Mwz7wlTeTFd9DT6QsFzOZm6\npbh1xT9c74h64gNpJZulz8VMfpfv3fUnEG+M9TDhPRKsVI6+tZ00IkS+TOK0Cjf9\nWq1pZiHLYmYVwuLfj1/2Hk8=\n-----END PRIVATE KEY-----\n",
+    client_email:
+      "firebase-adminsdk-rej5m@rolling-sushi-project.iam.gserviceaccount.com",
+    client_id: "103596595117544440620",
+    auth_uri: "https://accounts.google.com/o/oauth2/auth",
+    token_uri: "https://oauth2.googleapis.com/token",
+    auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs",
+    client_x509_cert_url:
+      "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-rej5m%40rolling-sushi-project.iam.gserviceaccount.com",
+    universe_domain: "googleapis.com",
   }),
 });
 
