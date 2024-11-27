@@ -145,21 +145,21 @@ app.get("/getNews", async (req, res) => {
 app.post("/createNews", async (req, res) => {
   console.log(req.body);
   const { title, subTitle, text } = req.body;
-  const createNews = await Notify.create({ title, subTitle, text });
-  res.send(createNews);
-  // const payload = {
-  //   topic: "all_users",
-  //   notification: { title, subtitle: subTitle, text },
-  //   data: { title, subtitle: subTitle, text },
-  // };
+  // const createNews = await Notify.create({ title, subTitle, text });
+  const payload = {
+    topic: "all_users",
+    notification: { title, body: subTitle },
+    data: {},
+  };
 
-  // try {
-  //   const response = await admin.messaging().send(payload);
-  //   console.log("Notification sent successfully to topic:", response);
-  // } catch (error) {
-  //   console.error("Error sending notification to topic:", error);
-  //   res.send("error");
-  // }
+  try {
+    const response = await admin.messaging().send(payload);
+    console.log("Notification sent successfully to topic:", response);
+  } catch (error) {
+    console.error("Error sending notification to topic:", error);
+    res.send("error");
+  }
+  res.json({hello: "world"});
 });
 
 app.post("/", async (req, res) => {
