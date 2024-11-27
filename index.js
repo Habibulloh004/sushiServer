@@ -60,24 +60,24 @@ admin.initializeApp({
 async function sendNotificationToTopic(token, language, status) {
   const messages = {
     accept: {
-      en: "Your order has been accepted",
-      ru: "Ваш заказ был принят",
-      uz: "Sizning buyurtmangiz qabul qilindi",
+      en: "Your order is accepted! Thank you for choosing us! ❤️🍱",
+      ru: "Ваш заказ принят! Спасибо, что выбрали нас! ❤️🍱",
+      uz: "Buyurtmangiz qabul qilindi! Bizni tanlaganingiz uchun rahmat! ❤️🍱",
     },
     cooking: {
-      en: "Your order is being prepared",
-      ru: "Ваш заказ готовится",
-      uz: "Sizning buyurtmangiz tayyorlanmoqda",
+      en: "Your order is being prepared with love and care! 💕👨‍🍳",
+      ru: "Ваш заказ готовится с любовью и заботой! 💕👨‍🍳",
+      uz: "Buyurtmangiz mehr va g‘amxo‘rlik bilan tayyorlanmoqda! 💕👨‍🍳",
     },
     delivery: {
-      en: "Your order is with the courier",
-      ru: "Ваш заказ у курьера",
-      uz: "Sizning buyurtmangiz kuryerda",
+      en: "Delivery is on the way — just a little more, and it will be delicious! 🚗💨🍣",
+      ru: "Доставка в пути — ещё немного, и будет вкусно! 🚗💨🍣",
+      uz: "Buyurtma yo‘lda — oz qoldi, va tez orada mazali bo‘ladi! 🚗💨🍣",
     },
     finished: {
-      en: "Your order has arrived",
-      ru: "Ваш заказ прибыл",
-      uz: "Sizning buyurtmangiz yetib keldi",
+      en: "Lovingly delivered! May your day be delicious! 💌🍱",
+      ru: "С любовью доставлено! Пусть ваш день будет вкусным! 💌🍱",
+      uz: "Muhabbat bilan yetkazildi! Kuningiz mazali o‘tsin! 💌🍱",
     },
   };
 
@@ -146,8 +146,20 @@ app.post("/createNews", async (req, res) => {
   console.log(req.body);
   const { title, subTitle, text } = req.body;
   const createNews = await Notify.create({ title, subTitle, text });
-
   res.send(createNews);
+  // const payload = {
+  //   topic: "all_users",
+  //   notification: { title, subtitle: subTitle, text },
+  //   data: { title, subtitle: subTitle, text },
+  // };
+
+  // try {
+  //   const response = await admin.messaging().send(payload);
+  //   console.log("Notification sent successfully to topic:", response);
+  // } catch (error) {
+  //   console.error("Error sending notification to topic:", error);
+  //   res.send("error");
+  // }
 });
 
 app.post("/", async (req, res) => {
