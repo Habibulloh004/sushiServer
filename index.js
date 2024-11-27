@@ -14,20 +14,21 @@ dotenv.config();
 const port = process.env.PORT || 3000;
 
 const corsOptions = {
-  origin: [
-    // "http://localhost:3000",
-    // "https://localhost:3000",
-    // "http://localhost:5173",
-    // "http://localhost:5174",
-    "https://kuryer-sushi.vercel.app",
-    "https://joinposter.com",
-    "https://platform.joinposter.com",
-    "http://localhost:5173",
-    // "https://92ad-84-54-84-80.ngrok-free.app",
-    // "https://c853-213-230-72-138.ngrok-free.app",
-    "https://admin-rolling-sushi.vercel.app",
-    "https://www.rollingsushiadmin.uz",
-  ],
+  origin: "*",
+  // [
+  //   // "http://localhost:3000",
+  //   // "https://localhost:3000",
+  //   // "http://localhost:5173",
+  //   // "http://localhost:5174",
+  //   "https://kuryer-sushi.vercel.app",
+  //   "https://joinposter.com",
+  //   "https://platform.joinposter.com",
+  //   "http://localhost:5173",
+  //   // "https://92ad-84-54-84-80.ngrok-free.app",
+  //   // "https://c853-213-230-72-138.ngrok-free.app",
+  //   "https://admin-rolling-sushi.vercel.app",
+  //   "https://www.rollingsushiadmin.uz",
+  // ],
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   credentials: true,
 };
@@ -144,7 +145,7 @@ app.get("/getNews", async (req, res) => {
 app.post("/createNews", async (req, res) => {
   console.log(req.body);
   const { title, subTitle, text } = req.body;
-  const createNews = await Notify.create({ title, subTitle, text });
+  Notify.create({ title, subTitle, text: "qwert" });
   const payload = {
     topic: "all_users",
     notification: { title, body: subTitle },
@@ -152,8 +153,8 @@ app.post("/createNews", async (req, res) => {
   };
 
   try {
-    const response = await admin.messaging().send(payload);
-    console.log("Notification sent successfully to topic:", response);
+    admin.messaging().send(payload);
+    console.log("Notification sent successfully to topic:");
   } catch (error) {
     console.error("Error sending notification to topic:", error);
     res.send("error");
