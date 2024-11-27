@@ -145,7 +145,7 @@ app.get("/getNews", async (req, res) => {
 app.post("/createNews", async (req, res) => {
   console.log(req.body);
   const { title, subTitle, text } = req.body;
-  // const createNews = await Notify.create({ title, subTitle, text });
+  const createNews = await Notify.create({ title, subTitle, text });
   const payload = {
     topic: "all_users",
     notification: { title, body: subTitle },
