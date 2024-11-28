@@ -37,6 +37,21 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+function convertPhoneNumber(phoneNumber) {
+  // Remove the "+" if it exists
+  if (phoneNumber.startsWith("+")) {
+    phoneNumber = phoneNumber.slice(1);
+  }
+
+  // Add "998" at the front if the length is less than 12
+  if (phoneNumber.length < 12) {
+    phoneNumber = "998" + phoneNumber;
+  }
+
+  // Return the processed phone number
+  return phoneNumber;
+}
+
 // Initialize Firebase Admin SDK
 admin.initializeApp({
   credential: admin.credential.cert({
@@ -160,6 +175,26 @@ app.post("/createNews", async (req, res) => {
     res.send("error");
   }
   res.json({ hello: "world" });
+});
+
+app.get("/getClientTransaction/:phone", async (req, res) => {
+  const { phone } = req.params;
+  const cnvNumber = convertPhoneNumber(phone)
+
+  try {
+    const response = await axios.get(
+      `https://joinposter.com/api/clients.getClients?token=${process.env.PAST}&phone=${cnvNumber}`
+    );
+
+    if (!response.data.response) {
+      return res.send({ error: "No client found." });
+    }
+
+    res.send(response.data.response[0]);
+  } catch (error) {
+    console.error("Error fetching client:", error);
+    res.status(500).send({ error: "Internal Server Error" }); // Handle general errors
+  }
 });
 
 app.post("/", async (req, res) => {
