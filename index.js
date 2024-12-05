@@ -177,9 +177,15 @@ app.post("/createNews", async (req, res) => {
   res.json({ hello: "world" });
 });
 
+app.delete("/deleteNews/:newsId", async (req, res) => {
+  const { newsId } = req.params;
+  const result = await Notify.deleteOne({ _id: newsId });
+  res.send(result);
+});
+
 app.get("/getClientTransaction/:phone", async (req, res) => {
   const { phone } = req.params;
-  const cnvNumber = convertPhoneNumber(phone)
+  const cnvNumber = convertPhoneNumber(phone);
 
   try {
     const response = await axios.get(
