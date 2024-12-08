@@ -177,6 +177,43 @@ app.post("/createNews", async (req, res) => {
   res.json({ hello: "world" });
 });
 
+app.get("/posterClients", async (req, res) => {
+  try {
+    const getClients = await axios.get(
+      `https://joinposter.com/api/clients.getClients?token=${process.env.PAST}`
+    );
+    res.send(getClients.data.response); // Send API response
+  } catch (err) {
+    res.send({ err });
+    console.error(err);
+    // Handle errors appropriately
+  }
+});
+app.get("/posterProducts", async (req, res) => {
+  try {
+    const getClients = await axios.get(
+      `https://joinposter.com/api/menu.getProducts?token=${process.env.PAST}`
+    );
+    res.send(getClients.data.response); // Send API response
+  } catch (err) {
+    res.send({ err });
+    console.error(err);
+    // Handle errors appropriately
+  }
+});
+app.get("/posterCategories", async (req, res) => {
+  try {
+    const getClients = await axios.get(
+      `https://joinposter.com/api/menu.getCategories?token=${process.env.PAST}`
+    );
+    res.send(getClients.data.response); // Send API response
+  } catch (err) {
+    res.send({ err });
+    console.error(err);
+    // Handle errors appropriately
+  }
+});
+
 app.delete("/deleteNews/:newsId", async (req, res) => {
   const { newsId } = req.params;
   const result = await Notify.deleteOne({ _id: newsId });
