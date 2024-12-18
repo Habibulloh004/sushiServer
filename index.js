@@ -165,6 +165,19 @@ app.get("/posterClientGroup", async (req, res) => {
   }
 });
 
+app.get("/posterClient/:id", async (req, res) => {
+  try {
+    const getClient = await axios.get(
+      `https://joinposter.com/api/clients.getClient?token=${process.env.PAST}&client_id=${req.params.id}`
+    );
+    res.send(getClient.data); // Send API response
+  } catch (err) {
+    res.send({ err });
+    console.error(err);
+    // Handle errors appropriately
+  }
+});
+
 app.post("/posterCreateClient", async (req, res) => {
   try {
     const postData = await axios.post(
