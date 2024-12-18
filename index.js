@@ -152,6 +152,33 @@ app.post("/notify", async (req, res) => {
   res.send("ok");
 });
 
+app.get("/posterClientGroup", async (req, res) => {
+  try {
+    const getClients = await axios.get(
+      `https://joinposter.com/api/clients.getGroups?token=${process.env.PAST}`
+    );
+    res.send(getClients.data.response); // Send API response
+  } catch (err) {
+    res.send({ err });
+    console.error(err);
+    // Handle errors appropriately
+  }
+});
+
+app.post("/posterCreateClient", async (req, res) => {
+  try {
+    const postData = await axios.post(
+      `https://joinposter.com/api/clients.createClient?token=${process.env.PAST}`,
+      req.body
+    );
+    res.send(postData.data); // Send API response
+  } catch (err) {
+    console.error(err);
+    // Handle errors appropriately
+    res.send({err});
+  }
+});
+
 app.get("/getNews", async (req, res) => {
   const news = await Notify.find({});
   res.send(news);
