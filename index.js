@@ -101,16 +101,11 @@ async function sendNotificationToTopic(token, language, status) {
     : "Order status update";
 
   const payload = {
-    // topic: topic,
     token: token,
     notification: {
       title: "Rolling sushi",
       body: bodyMessage,
-    },
-    data: {
-      orderId: "123456",
-      status: "Confirmed",
-    },
+    }
   };
 
   try {
@@ -146,7 +141,6 @@ app.get("/", async (req, res) => {
 const processingStatus = {};
 
 app.post("/notify", async (req, res) => {
-  console.log(req.body);
   const { fcm, fcm_lng, status } = req.body;
   sendNotificationToTopic(fcm, fcm_lng, status);
   res.send("ok");
@@ -188,7 +182,7 @@ app.post("/posterCreateClient", async (req, res) => {
   } catch (err) {
     console.error(err);
     // Handle errors appropriately
-    res.send({err});
+    res.send({ err });
   }
 });
 
@@ -198,24 +192,57 @@ app.get("/getNews", async (req, res) => {
 });
 
 app.post("/createNews", async (req, res) => {
-  console.log(req.body);
-  const { title, subTitle, text } = req.body;
-  Notify.create({ title, subTitle, text: "qwert" });
-  const payload = {
-    topic: "all_users",
-    notification: { title, body: subTitle },
-    data: {},
-  };
+  const { en, ru, uz } = req.body; // Получаем данные из запроса
+  async function sendNotificationToTopic(topic, title, body) {
+    const payload = {
+      topic: topic,
+      notification: {
+        title: title,
+        body: body,
+      },
+    };
+
+    try {
+      const response = await admin.messaging().send(payload);
+      console.log(`Notification sent successfully to ${topic}:`, response);
+    } catch (error) {
+      console.error(`Error sending notification to ${topic}:`, error);
+    }
+  }
 
   try {
-    admin.messaging().send(payload);
-    console.log("Notification sent successfully to topic:");
+    // Отправляем уведомления для каждого языка
+    await sendNotificationToTopic("all_users_en", en.title, en.body);
+    await sendNotificationToTopic("all_users_ru", ru.title, ru.body);
+    await sendNotificationToTopic("all_users_uz", uz.title, uz.body);
+    await Notify.create(req.body);
+    console.log("All notifications sent successfully!");
+    res.json({ message: "Notifications sent successfully" });
   } catch (error) {
-    console.error("Error sending notification to topic:", error);
-    res.send("error");
+    console.error("Error sending notifications:", error);
+    res.status(500).send("Error creating notifications");
   }
-  res.json({ hello: "world" });
 });
+
+// app.post("/createNews", async (req, res) => {
+//   console.log(req.body);
+//   const { title, subTitle, text } = req.body;
+//   Notify.create({ title, subTitle, text: "qwert" });
+//   const payload = {
+//     topic: "all_users",
+//     notification: { title, body: subTitle },
+//     data: {},
+//   };
+
+//   try {
+//     admin.messaging().send(payload);
+//     console.log("Notification sent successfully to topic:");
+//   } catch (error) {
+//     console.error("Error sending notification to topic:", error);
+//     res.send("error");
+//   }
+//   res.json({ hello: "world" });
+// });
 
 app.get("/posterClients", async (req, res) => {
   try {
