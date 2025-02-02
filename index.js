@@ -8,6 +8,7 @@ import { Order } from "./models/order.model.js";
 import { app, server, io } from "./socket/socket.js";
 import admin from "firebase-admin";
 import { Notify } from "./models/notify.model.js";
+import { Time } from "./models/time.model.js";
 // import socketIoClient from "socket.io-client";
 
 dotenv.config();
@@ -105,7 +106,7 @@ async function sendNotificationToTopic(token, language, status) {
     notification: {
       title: "Rolling sushi",
       body: bodyMessage,
-    }
+    },
   };
 
   try {
@@ -136,6 +137,26 @@ app.get("/", async (req, res) => {
   const responseData = [{ name: "foo", value: "bar" }];
 
   // res.json(responseData);
+});
+
+app.get("/get_time", async (req, res) => {
+  const time = await Time.findOne({});
+  res.send(time);
+});
+
+app.post("/edit_time", async (req, res) => {
+  const { opened_time, closed_time } = req.body;
+  const getItem = await Time.findOne({});
+  if (getItem) {
+    const result = await Time.updateOne(
+      { _id: getItem._id },
+      { $set: req.body }
+    );
+    res.send(result);
+  } else {
+    const result = await Time.create(req.body);
+    res.send(result);
+  }
 });
 
 const processingStatus = {};
