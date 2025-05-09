@@ -10,6 +10,10 @@ import admin from "firebase-admin";
 import { Notify } from "./models/notify.model.js";
 import { Time } from "./models/time.model.js";
 // import socketIoClient from "socket.io-client";
+import cookieParser from 'cookie-parser'
+import errorMiddleware from './middlewares/error.middleware.js'
+import routesPay from './routes/index.js';
+
 
 dotenv.config();
 const port = process.env.PORT || 3000;
@@ -36,7 +40,13 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+app.use(express.urlencoded({ extended: false }));
+
+
+app.use("/api", routesPay);
+
+app.use(errorMiddleware);
 
 function convertPhoneNumber(phoneNumber) {
   // Remove the "+" if it exists
