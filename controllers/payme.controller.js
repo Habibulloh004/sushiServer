@@ -45,7 +45,7 @@ class PaymeController {
       const amountOrder = orderDetails.amount * 100;
 
       if (userId) {
-        await transactionModel.deleteMany({
+         transactionModel.deleteMany({
           userId,
           status: 1,
           provider: "payme",

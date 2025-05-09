@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const { Schema, model } = mongoose;
 
@@ -9,6 +9,7 @@ const transactionSchema = new Schema(
     orderDetails: { type: Object },
     status: { type: Number },
     amount: { type: Number },
+    order_id: { type: String },
     create_time: { type: Number, default: 0 },
     perform_time: { type: Number, default: 0 },
     cancel_time: { type: Number, default: 0 },
@@ -19,4 +20,4 @@ const transactionSchema = new Schema(
   { timestamps: true }
 );
 
-export default model('Transaction', transactionSchema);
+export default model("Transaction", transactionSchema);

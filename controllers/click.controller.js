@@ -42,7 +42,7 @@ class ClickController {
       const MERCHANT_USER_ID = process.env.CLICK_MERCHANT_USER_ID;
 
       if (userId) {
-        await transactionModel.deleteMany({
+         transactionModel.deleteMany({
           userId,
           status: 1,
           provider: "click",
