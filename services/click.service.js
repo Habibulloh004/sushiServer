@@ -6,6 +6,7 @@ import {
   TransactionState,
 } from "../enum/transaction.enum.js";
 import apiService from "../services/api.service.js";
+import axios from "axios";
 
 class ClickService {
   async prepare(data) {
