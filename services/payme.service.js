@@ -137,13 +137,14 @@ class PaymeService {
     }
     const { orderDetails, amount } = transaction;
     const { service_mode, comment } = orderDetails;
+    let res;
     switch (service_mode) {
       //zavideniya
       case 1:
         const { service, spot_name, ...spotData } = orderDetails;
-        const res1 = await apiService.createIncomingOrder(spotData);
-        const { transaction_id } = res1?.response;
-        console.log("res", res1);
+        const res = await apiService.createIncomingOrder(spotData);
+        const { transaction_id } = res?.response;
+        console.log("res", res);
         if (transaction_id) {
           const message = `
           📦 Новый заказ! №${transaction_id}
@@ -168,11 +169,11 @@ class PaymeService {
       //delivery
       case 2:
         const { service_mode, ...abganiData } = orderDetails;
-        await apiService.createAbduganiOrder(abganiData);
+        res = await apiService.createAbduganiOrder(abganiData);
         break;
       //pickup
       case 3:
-        await apiService.createAbduganiOrder(abganiData);
+        res = await apiService.createAbduganiOrder(abganiData);
         break;
       default:
         break;
@@ -180,7 +181,11 @@ class PaymeService {
 
     await transactionModel.findOneAndUpdate(
       { transaction_id: params.id },
-      { status: TransactionState.Paid, perform_time: currentTime }
+      {
+        status: TransactionState.Paid,
+        perform_time: currentTime,
+        order_id: res?.order_id ? res?.order_id : "",
+      }
     );
 
     return {
