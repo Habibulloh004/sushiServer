@@ -136,7 +136,9 @@ class PaymeService {
       throw new TransactionError(PaymeError.CantDoOperation, id);
     }
     const { orderDetails, amount } = transaction;
-    const { service_mode, comment } = orderDetails;
+    const { comment } = orderDetails;
+    const { service_mode, ...abganiData } = orderDetails;
+
     let res;
     switch (service_mode) {
       //zavideniya
@@ -168,7 +170,6 @@ class PaymeService {
         break;
       //delivery
       case 2:
-        const { service_mode, ...abganiData } = orderDetails;
         res = await apiService.createAbduganiOrder(abganiData);
         break;
       //pickup
