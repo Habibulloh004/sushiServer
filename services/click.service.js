@@ -1,6 +1,11 @@
-import transactionModel from '../models/transaction.model.js';
-import clickCheckToken from '../utils/click-check.js';
-import { ClickError, ClickAction, TransactionState } from '../enum/transaction.enum.js';
+import transactionModel from "../models/transaction.model.js";
+import clickCheckToken from "../utils/click-check.js";
+import {
+  ClickError,
+  ClickAction,
+  TransactionState,
+} from "../enum/transaction.enum.js";
+import apiService from "../services/api.service.js";
 
 class ClickService {
   async prepare(data) {
@@ -73,10 +78,14 @@ class ClickService {
     }
 
     const time = new Date().getTime();
-		
+
     await transactionModel.findOneAndUpdate(
       { _id: orderId },
-      { transaction_id: click_trans_id, status: TransactionState.Pending, perform_time: time }
+      {
+        transaction_id: click_trans_id,
+        status: TransactionState.Pending,
+        perform_time: time,
+      }
     );
 
     return {
@@ -179,7 +188,48 @@ class ClickService {
         error_note: "Transaction not found",
       };
     }
+    const { orderDetails } = transaction;
+    const { service_mode, comment } = orderDetails;
+    switch (service_mode) {
+      //zavideniya
+      case 1:
+        const { service, spot_name, ...spotData } = orderDetails;
+        const res1 = await apiService.createIncomingOrder(spotData);
+        const { transaction_id } = res1?.response;
+        console.log("res", res1);
+        if (transaction_id) {
+          const message = `
+          📦 Новый заказ! №${transaction_id}
+          🛒 Название филиал: ${spot_name}
+          📞 Телефон: +998771244444
+          💵 Сумма заказа: ${formatNumber(
+            service == "waiter"
+              ? Number(amount + (amount * 10) / 100)
+              : Number(amount)
+          )} сум
+          💳 Метод оплаты:Карта (Оплачено)
+          🛍 Тип заказа: Заведения
+          ✏️ Комментарий: ${comment}`.trim();
 
+          await axios.get(
+            `https://api.telegram.org/bot7051935328:AAFJxJAVsRTPxgj3rrHWty1pEUlMkBgg9_o/sendMessage?chat_id=-1002211902296&text=${encodeURIComponent(
+              message
+            )}`
+          );
+        }
+        break;
+      //delivery
+      case 2:
+        const { service_mode, ...abganiData } = orderDetails;
+        await apiService.createAbduganiOrder(abganiData);
+        break;
+      //pickup
+      case 3:
+        await apiService.createAbduganiOrder(abganiData);
+        break;
+      default:
+        break;
+    }
     await transactionModel.findOneAndUpdate(
       { _id: orderId },
       { status: TransactionState.Paid, perform_time: time }

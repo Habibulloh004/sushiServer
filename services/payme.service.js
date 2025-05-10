@@ -1,17 +1,22 @@
-import { default as mongoose } from 'mongoose';
-import TransactionError from '../errors/transaction.error.js';
-import { PaymeError, PaymeData, TransactionState } from '../enum/transaction.enum.js';
-import transactionModel from '../models/transaction.model.js';
-
+import { default as mongoose } from "mongoose";
+import TransactionError from "../errors/transaction.error.js";
+import {
+  PaymeError,
+  PaymeData,
+  TransactionState,
+} from "../enum/transaction.enum.js";
+import transactionModel from "../models/transaction.model.js";
+import apiService from "../services/api.service.js";
+import axios from "axios";
 class PaymeService {
   async checkPerformTransaction(params, id) {
     let { amount } = params;
     const { account } = params;
     const order = await transactionModel.findOne({
       _id: account.order_id,
-      provider: 'payme',
+      provider: "payme",
     });
-    
+
     if (!order) {
       throw new TransactionError(PaymeError.TransactionNotFound, id);
     }
@@ -29,8 +34,8 @@ class PaymeService {
       throw new TransactionError(PaymeError.TransactionNotFound, id);
     }
 
-    console.log({transaction});
-    
+    console.log({ transaction });
+
     return {
       create_time: transaction.create_time,
       perform_time: transaction.perform_time,
@@ -75,7 +80,7 @@ class PaymeService {
 
     transaction = await transactionModel.findOne({
       _id: account.order_id,
-      provider: 'payme',
+      provider: "payme",
     });
     if (transaction) {
       if (transaction.status === TransactionState.Paid)
@@ -130,6 +135,48 @@ class PaymeService {
       );
       throw new TransactionError(PaymeError.CantDoOperation, id);
     }
+    const { orderDetails, amount } = transaction;
+    const { service_mode, comment } = orderDetails;
+    switch (service_mode) {
+      //zavideniya
+      case 1:
+        const { service, spot_name, ...spotData } = orderDetails;
+        const res1 = await apiService.createIncomingOrder(spotData);
+        const { transaction_id } = res1?.response;
+        console.log("res", res1);
+        if (transaction_id) {
+          const message = `
+          📦 Новый заказ! №${transaction_id}
+          🛒 Название филиал: ${spot_name}
+          📞 Телефон: +998771244444
+          💵 Сумма заказа: ${formatNumber(
+            service == "waiter"
+              ? Number(amount + (amount * 10) / 100)
+              : Number(amount)
+          )} сум
+          💳 Метод оплаты:Карта (Оплачено)
+          🛍 Тип заказа: Заведения
+          ✏️ Комментарий: ${comment}`.trim();
+
+          await axios.get(
+            `https://api.telegram.org/bot7051935328:AAFJxJAVsRTPxgj3rrHWty1pEUlMkBgg9_o/sendMessage?chat_id=-1002211902296&text=${encodeURIComponent(
+              message
+            )}`
+          );
+        }
+        break;
+      //delivery
+      case 2:
+        const { service_mode, ...abganiData } = orderDetails;
+        await apiService.createAbduganiOrder(abganiData);
+        break;
+      //pickup
+      case 3:
+        await apiService.createAbduganiOrder(abganiData);
+        break;
+      default:
+        break;
+    }
 
     await transactionModel.findOneAndUpdate(
       { transaction_id: params.id },
@@ -176,7 +223,7 @@ class PaymeService {
     const { from, to } = params;
     const transactions = await transactionModel.find({
       create_time: { $gte: from, $lte: to },
-      provider: 'payme',
+      provider: "payme",
     });
 
     return transactions.map((transaction) => ({

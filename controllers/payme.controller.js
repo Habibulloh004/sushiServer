@@ -37,15 +37,15 @@ class PaymeController {
       next(err);
     }
   }
-
   async checkout(req, res, next) {
     try {
-      const { orderDetails, amount, url, userId } = req.body;
+      const { orderDetails, amount, userId } = req.body;
+      let { url } = req.body;
       const MERCHANT_ID = process.env.PAYME_MERCHANT_ID;
       const amountOrder = orderDetails.amount * 100;
 
       if (userId) {
-         transactionModel.deleteMany({
+        transactionModel.deleteMany({
           userId,
           status: 1,
           provider: "payme",
@@ -63,6 +63,9 @@ class PaymeController {
         orderData.userId = userId;
       }
       const order = await transactionModel.create(orderData);
+      if (orderDetails?.service_mode != 1) {
+        url = url + "/" + order?._id;
+      }
       const r = base64.encode(
         `m=${MERCHANT_ID};ac:order_id=${order?._id};a=${amountOrder};c=${url}`
       );
