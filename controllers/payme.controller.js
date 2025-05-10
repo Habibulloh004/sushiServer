@@ -71,6 +71,7 @@ class PaymeController {
       );
       return res.json({
         url: `https://checkout.payme.uz/${r}`,
+        order_id: order._id,
       });
     } catch (error) {
       next(error);

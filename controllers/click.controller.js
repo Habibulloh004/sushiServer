@@ -66,7 +66,7 @@ class ClickController {
       }
       const checkoutUrl = `https://my.click.uz/services/pay?service_id=${SERVICE_ID}&merchant_id=${MERCHANT_ID}&amount=${amount}&transaction_param=${order?._id}&merchant_order_id=${MERCHANT_USER_ID}&return_url=${url}`;
 
-      res.json({ url: checkoutUrl });
+      res.json({ url: checkoutUrl, order_id: order._id });
     } catch (error) {
       next(error);
     }
