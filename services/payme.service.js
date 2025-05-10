@@ -144,22 +144,21 @@ class PaymeService {
       //zavideniya
       case 1:
         const { service, spot_name, ...spotData } = orderDetails;
-        const res = await apiService.createIncomingOrder(spotData);
+        res = await apiService.createIncomingOrder(spotData);
         const { transaction_id } = res?.response;
-        console.log("res", res);
         if (transaction_id) {
           const message = `
-          📦 Новый заказ! №${transaction_id}
-          🛒 Название филиал: ${spot_name}
-          📞 Телефон: +998771244444
-          💵 Сумма заказа: ${formatNumber(
+📦 Новый заказ! №${transaction_id}
+🛒 Название филиал: ${spot_name}
+📞 Телефон: +998771244444
+💵 Сумма заказа: ${
             service == "waiter"
               ? Number(amount + (amount * 10) / 100)
               : Number(amount)
-          )} сум
-          💳 Метод оплаты:Карта (Оплачено)
-          🛍 Тип заказа: Заведения
-          ✏️ Комментарий: ${comment}`.trim();
+          } сум
+💳 Метод оплаты:Карта (Оплачено)
+🛍 Тип заказа: Заведения
+✏️ Комментарий: ${comment}`.trim();
 
           await axios.get(
             `https://api.telegram.org/bot7051935328:AAFJxJAVsRTPxgj3rrHWty1pEUlMkBgg9_o/sendMessage?chat_id=-1002211902296&text=${encodeURIComponent(
@@ -179,7 +178,7 @@ class PaymeService {
       default:
         break;
     }
-
+    console.log("res", res);
     await transactionModel.findOneAndUpdate(
       { transaction_id: params.id },
       {

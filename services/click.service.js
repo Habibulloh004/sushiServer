@@ -202,17 +202,17 @@ class ClickService {
         const { transaction_id } = res?.response;
         if (transaction_id) {
           const message = `
-          📦 Новый заказ! №${transaction_id}
-          🛒 Название филиал: ${spot_name}
-          📞 Телефон: +998771244444
-          💵 Сумма заказа: ${formatNumber(
+📦 Новый заказ! №${transaction_id}
+🛒 Название филиал: ${spot_name}
+📞 Телефон: +998771244444
+💵 Сумма заказа: ${
             service == "waiter"
               ? Number(amount + (amount * 10) / 100)
               : Number(amount)
-          )} сум
-          💳 Метод оплаты:Карта (Оплачено)
-          🛍 Тип заказа: Заведения
-          ✏️ Комментарий: ${comment}`.trim();
+          } сум
+💳 Метод оплаты:Карта (Оплачено)
+🛍 Тип заказа: Заведения
+✏️ Комментарий: ${comment}`.trim();
 
           await axios.get(
             `https://api.telegram.org/bot7051935328:AAFJxJAVsRTPxgj3rrHWty1pEUlMkBgg9_o/sendMessage?chat_id=-1002211902296&text=${encodeURIComponent(
