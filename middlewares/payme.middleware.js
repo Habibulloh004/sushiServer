@@ -15,7 +15,7 @@ export default function (req, res, next) {
     const data = base64.decode(token);
     console.log('Decoded data:', data);
     console.log("Token:", token);
-    console.log("PAYME_MERCHANT_KEY:", PAYME_MERCHANT_KEY);
+    console.log("PAYME_MERCHANT_KEY:", process.env.PAYME_MERCHANT_KEY);
 
     if (!data.includes(process.env.PAYME_MERCHANT_KEY)) {
       throw new TransactionError(PaymeError.InvalidAuthorization, id);
