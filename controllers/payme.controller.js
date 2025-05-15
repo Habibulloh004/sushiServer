@@ -42,7 +42,7 @@ class PaymeController {
       const { orderDetails, amount, userId } = req.body;
       let { url } = req.body;
       const MERCHANT_ID = process.env.PAYME_MERCHANT_ID;
-      const amountOrder = orderDetails.amount * 100;
+      const amountOrder = amount * 100;
 
       if (userId) {
         transactionModel.deleteMany({
@@ -63,7 +63,7 @@ class PaymeController {
         orderData.userId = userId;
       }
       const order = await transactionModel.create(orderData);
-      if (orderDetails?.service_mode != 1) {
+      if (orderDetails?.service_mode != 1 && order?._id) {
         url = url + "/" + order?._id;
       }
       const r = base64.encode(
