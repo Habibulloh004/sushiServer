@@ -69,11 +69,18 @@ class PaymeController {
       const r = base64.encode(
         `m=${MERCHANT_ID};ac:order_id=${order?._id};a=${amountOrder};c=${url}`
       );
+      
+      console.log(r);
+      console.log(
+        `m=${MERCHANT_ID};ac:order_id=${order?._id};a=${amountOrder};c=${url}`
+      );
+
       return res.json({
         url: `https://checkout.payme.uz/${r}`,
         order_id: order._id,
       });
     } catch (error) {
+      console.log(error);
       next(error);
     }
   }
