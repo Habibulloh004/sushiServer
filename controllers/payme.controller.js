@@ -67,13 +67,14 @@ class PaymeController {
         url = url + "/" + order?._id;
       }
       const r = base64.encode(
-        `m=${MERCHANT_ID};ac:order_id=${order?._id};a=${amountOrder};c=${url}`
+        `m=${MERCHANT_ID};ac.order_id=${order?._id};a=${amountOrder};c=${url}`
       );
       
       console.log(r);
       console.log(
-        `m=${MERCHANT_ID};ac:order_id=${order?._id};a=${amountOrder};c=${url}`
+        `m=${MERCHANT_ID};ac.order_id=${order?._id};a=${amountOrder};c=${url}`
       );
+      console.log(url)
 
       return res.json({
         url: `https://checkout.payme.uz/${r}`,

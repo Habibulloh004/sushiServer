@@ -11,6 +11,7 @@ import axios from "axios";
 class PaymeService {
   async checkPerformTransaction(params, id) {
     let { amount } = params;
+    amount = Math.floor(amount / 100);
     const { account } = params;
     const order = await transactionModel.findOne({
       _id: account.order_id,
