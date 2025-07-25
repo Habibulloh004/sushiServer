@@ -554,7 +554,7 @@ app.get("/getTransaction", async (req, res) => {
 
       try {
         const backOrder = await axios.get(
-          `https://vm4983125.25ssd.had.wf:5000/get_order/${transaction.transaction_comment}`
+          `${process.env.AURL}/get_order/${transaction.transaction_comment}`
         );
         if (backOrder.data) transaction.backOrder = backOrder?.data;
       } catch (error) {
