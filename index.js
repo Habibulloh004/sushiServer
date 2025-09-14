@@ -10,10 +10,9 @@ import admin from "firebase-admin";
 import { Notify } from "./models/notify.model.js";
 import { Time } from "./models/time.model.js";
 // import socketIoClient from "socket.io-client";
-import cookieParser from 'cookie-parser'
-import errorMiddleware from './middlewares/error.middleware.js'
-import routesPay from './routes/index.js';
-
+import cookieParser from "cookie-parser";
+import errorMiddleware from "./middlewares/error.middleware.js";
+import routesPay from "./routes/index.js";
 
 dotenv.config();
 const port = process.env.PORT || 3000;
@@ -42,7 +41,6 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: false }));
-
 
 app.use("/api", routesPay);
 
@@ -788,6 +786,20 @@ app.post("/login", async (req, res) => {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "User not found" });
+  }
+});
+
+app.get("/sendMessageToTelegram", async (req, res) => {
+  const { message } = req.query;
+  const url = `https://api.telegram.org/bot7051935328:AAFJxJAVsRTPxgj3rrHWty1pEUlMkBgg9_o/sendMessage?chat_id=-1002211902296&text=${encodeURIComponent(
+    message
+  )}`;
+  try {
+    const response = await axios.get(url);
+    res.json(response.data);
+  } catch (error) {
+    console.error("Error sending message to Telegram:", error);
+    res.status(500).json({ error: "Failed to send message" });
   }
 });
 
